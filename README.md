@@ -1,6 +1,6 @@
 # Dungeon.v3
 > - With Genkit, Docker Model Runner, Docker Agentic Compose and Docker MCP Gateway.
-> - What is new: use the Genkit flows to implement AI Agents
+> - **What is new**: use the Genkit **flows** to implement AI Agents
 
 
 ## Getting Started
