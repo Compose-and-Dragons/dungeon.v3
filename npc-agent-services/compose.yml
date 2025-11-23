@@ -1,0 +1,190 @@
+services:
+  # Elara
+  sorcerer-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 9101:9100
+    environment:
+      SYSTEM_INSTRUCTIONS_PATH: ./data/sorcerer_system_instructions.md
+      BACKGROUND_CONTEXT_PATH: ./data/sorcerer_background_and_personality.md
+      STORE_NAME: sorcerer-agent-store
+
+    volumes:
+      # Persist vector store data
+      - ./store.db:/app/store.db
+      - ./data:/app/data
+
+    restart: unless-stopped
+
+    models:
+      sorcerer-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: CHAT_MODEL
+      embedding-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: EMBEDDING_MODEL
+
+  # Galdor
+  merchant-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 9102:9100
+    environment:
+      # Data paths (using defaults)
+      SYSTEM_INSTRUCTIONS_PATH: ./data/merchant_system_instructions.md
+      BACKGROUND_CONTEXT_PATH: ./data/merchant_background_and_personality.md
+      STORE_NAME: merchant-agent-store
+
+    volumes:
+      # Persist vector store data
+      - ./store.db:/app/store.db
+      - ./data:/app/data
+
+    restart: unless-stopped
+
+    models:
+      merchant-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: CHAT_MODEL
+      embedding-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: EMBEDDING_MODEL
+
+
+  # Thrain
+  guard-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 9103:9100
+    environment:
+      # Data paths (using defaults)
+      SYSTEM_INSTRUCTIONS_PATH: ./data/guard_system_instructions.md
+      BACKGROUND_CONTEXT_PATH: ./data/guard_background_and_personality.md
+      STORE_NAME: guard-agent-store
+
+    volumes:
+      # Persist vector store data
+      - ./store.db:/app/store.db
+      - ./data:/app/data
+
+    restart: unless-stopped
+
+    models:
+      guard-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: CHAT_MODEL
+      embedding-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: EMBEDDING_MODEL
+
+  # Liora
+  healer-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 9104:9100
+    environment:
+      # Data paths (using defaults)
+      SYSTEM_INSTRUCTIONS_PATH: ./data/healer_system_instructions.md
+      BACKGROUND_CONTEXT_PATH: ./data/healer_background_and_personality.md
+      STORE_NAME: healer-agent-store
+
+    volumes:
+      # Persist vector store data
+      - ./store.db:/app/store.db
+      - ./data:/app/data
+
+    restart: unless-stopped
+
+    models:
+      healer-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: CHAT_MODEL
+      embedding-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: EMBEDDING_MODEL
+
+  # Shesepankh
+  boss-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 9105:9100
+    environment:
+      # Data paths (using defaults)
+      SYSTEM_INSTRUCTIONS_PATH: ./data/boss_system_instructions.md
+      BACKGROUND_CONTEXT_PATH: ./data/boss_background_and_personality.md
+      STORE_NAME: boss-agent-store  
+    volumes:
+      # Persist vector store data
+      - ./store.db:/app/store.db
+      - ./data:/app/data
+    restart: unless-stopped
+    models:
+      boss-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: CHAT_MODEL
+      embedding-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: EMBEDDING_MODEL
+
+
+  gargantua-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 9106:9100
+    environment:
+      # Data paths (using defaults)
+      SYSTEM_INSTRUCTIONS_PATH: ./data/gargantua_system_instructions.md
+      BACKGROUND_CONTEXT_PATH: ./data/gargantua_background_and_personality.md
+      STORE_NAME: gargantua-agent-store
+
+    volumes:
+      # Persist vector store data
+      - ./store.db:/app/store.db
+      - ./data:/app/data
+
+    restart: unless-stopped
+
+    models:
+      gargantua-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: CHAT_MODEL
+      embedding-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: EMBEDDING_MODEL
+
+
+models:
+  sorcerer-model:
+    model: ai/qwen2.5:1.5B-F16
+    # runtime_flags:
+    #   - "--temp 1.0"
+    #   - "--top-p 0.9"
+  merchant-model:
+    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+  
+  guard-model:
+    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+
+  healer-model:
+    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+
+  boss-model:
+    model: hf.co/menlo/lucy-gguf:q4_k_m
+
+  gargantua-model:
+    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+  
+  embedding-model:
+    model: ai/mxbai-embed-large:latest

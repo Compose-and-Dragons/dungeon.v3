@@ -1,0 +1,5 @@
+tmp/
+fine-tuning/
+fine-tuning-qwen2.5-1.5b/
+generate-datasets/
+/.DS_Store

@@ -1,0 +1,453 @@
+x-common-variables: &common-variables
+  LOG_MESSAGES: "false"
+  # ---------------------------------------------------------
+  # Boss settings
+  # ---------------------------------------------------------
+  BOSS_ROOM: room_3_3
+  # Boss name
+  BOSS_NAME: Shesepankh
+  BOSS_RACE: Sphinx
+
+  # ---------------------------------------------------------
+  # Merchant settings
+  # ---------------------------------------------------------
+  MERCHANT_ROOM: room_1_1
+  # Merchant name and race
+  MERCHANT_NAME: Galdor
+  MERCHANT_RACE: Dwarf
+  
+  # ---------------------------------------------------------
+  # Guard settings
+  # ---------------------------------------------------------
+  GUARD_ROOM: room_0_2
+  # provisory guard name and race
+  GUARD_NAME: Thrain
+  GUARD_RACE: Elf
+  
+  # ---------------------------------------------------------
+  # Sorcerer settings
+  # ---------------------------------------------------------
+  SORCERER_ROOM: room_2_0
+  # provisory sorcerer name and race
+  SORCERER_NAME: Elara
+  SORCERER_RACE: Human  
+    
+  # ---------------------------------------------------------
+  # Healer settings
+  # ---------------------------------------------------------
+  HEALER_ROOM: room_2_1
+  # provisory healer name and race
+  HEALER_NAME: Liora
+  HEALER_RACE: Half-Elf
+  
+services:
+  # ---------------------------------------------------------
+  # Usage:
+  # docker compose up --build -d
+  # docker compose logs -f mcp-dungeon
+  # ---------------------------------------------------------
+
+  # Elara
+  sorcerer-agent:
+    build:
+      context: ./npc-agent-services
+      dockerfile: Dockerfile
+    ports:
+      - 9101:9100
+    environment:
+      SYSTEM_INSTRUCTIONS_PATH: ./data/sorcerer_system_instructions.md
+      BACKGROUND_CONTEXT_PATH: ./data/sorcerer_background_and_personality.md
+      STORE_NAME: sorcerer-agent-store
+
+      AGENT_MODEL_TEMPERATURE: 0.7
+      AGENT_MODEL_TOP_P: 0.9
+
+    volumes:
+      # Persist vector store data
+      - ./npc-agent-services/store.db:/app/store.db
+      - ./npc-agent-services/data:/app/data
+
+    restart: unless-stopped
+
+    models:
+      sorcerer-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: CHAT_MODEL
+      embedding-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: EMBEDDING_MODEL
+
+  # Galdor
+  merchant-agent:
+    build:
+      context: ./npc-agent-services
+      dockerfile: Dockerfile
+    ports:
+      - 9102:9100
+    environment:
+      # Data paths (using defaults)
+      SYSTEM_INSTRUCTIONS_PATH: ./data/merchant_system_instructions.md
+      BACKGROUND_CONTEXT_PATH: ./data/merchant_background_and_personality.md
+
+      STORE_NAME: merchant-agent-store
+      AGENT_MODEL_TEMPERATURE: 0.7
+      AGENT_MODEL_TOP_P: 0.9
+
+    volumes:
+      # Persist vector store data
+      - ./npc-agent-services/store.db:/app/store.db
+      - ./npc-agent-services/data:/app/data
+
+    restart: unless-stopped
+
+    models:
+      merchant-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: CHAT_MODEL
+      embedding-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: EMBEDDING_MODEL
+
+
+  # Thrain
+  guard-agent:
+    build:
+      context: ./npc-agent-services
+      dockerfile: Dockerfile
+    ports:
+      - 9103:9100
+    environment:
+      # Data paths (using defaults)
+      SYSTEM_INSTRUCTIONS_PATH: ./data/guard_system_instructions.md
+      BACKGROUND_CONTEXT_PATH: ./data/guard_background_and_personality.md
+      STORE_NAME: guard-agent-store
+
+      AGENT_MODEL_TEMPERATURE: 0.7
+      AGENT_MODEL_TOP_P: 0.9
+
+    volumes:
+      # Persist vector store data
+      - ./npc-agent-services/store.db:/app/store.db
+      - ./npc-agent-services/data:/app/data
+
+    restart: unless-stopped
+
+    models:
+      guard-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: CHAT_MODEL
+      embedding-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: EMBEDDING_MODEL
+
+  # Liora
+  healer-agent:
+    build:
+      context: ./npc-agent-services
+      dockerfile: Dockerfile
+    ports:
+      - 9104:9100
+    environment:
+      # Data paths (using defaults)
+      SYSTEM_INSTRUCTIONS_PATH: ./data/healer_system_instructions.md
+      BACKGROUND_CONTEXT_PATH: ./data/healer_background_and_personality.md
+      STORE_NAME: healer-agent-store
+
+      AGENT_MODEL_TEMPERATURE: 0.7
+      AGENT_MODEL_TOP_P: 0.9
+
+    volumes:
+      # Persist vector store data
+      - ./npc-agent-services/store.db:/app/store.db
+      - ./npc-agent-services/data:/app/data
+
+    restart: unless-stopped
+
+    models:
+      healer-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: CHAT_MODEL
+      embedding-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: EMBEDDING_MODEL
+
+  # Shesepankh
+  boss-agent:
+    build:
+      context: ./npc-agent-services
+      dockerfile: Dockerfile
+    ports:
+      - 9105:9100
+    environment:
+      # Data paths (using defaults)
+      SYSTEM_INSTRUCTIONS_PATH: ./data/boss_system_instructions.md
+      BACKGROUND_CONTEXT_PATH: ./data/boss_background_and_personality.md
+      STORE_NAME: boss-agent-store  
+
+      AGENT_MODEL_TEMPERATURE: 0.7
+      AGENT_MODEL_TOP_P: 0.9
+ 
+    volumes:
+      # Persist vector store data
+      - ./npc-agent-services/store.db:/app/store.db
+      - ./npc-agent-services/data:/app/data
+    restart: unless-stopped
+    models:
+      boss-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: CHAT_MODEL
+
+      embedding-model:
+        endpoint_var: ENGINE_BASE_URL
+        model_var: EMBEDDING_MODEL
+
+
+  mcp-gateway:
+    # mcp-gateway secures your MCP servers
+    image: docker/mcp-gateway:v2
+    ports:
+      - 9011:9011
+    use_api_socket: true
+    command:
+      - --port=9011
+      - --transport=streaming
+      - --verbose
+      - --catalog=/mcp/catalog.yaml
+      - --servers=mcp-dungeon,mcp-toc-toc
+
+    configs:
+      - source: catalog.yaml
+        target:
+          /mcp/catalog.yaml
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    depends_on:
+      mcp-dungeon:
+        condition: service_healthy
+  
+
+  mcp-dungeon:
+    build:
+      context: .
+      dockerfile: ./dungeon-crawler-mcp-server/Dockerfile
+    environment:
+      <<: *common-variables
+      MCP_HTTP_PORT: 6060
+      MCP_SERVER_BASE_URL: http://mcp-gateway:9011
+
+      # ---------------------------------------------------------
+      # Dungeon settings
+      # ---------------------------------------------------------
+      DUNGEON_NAME: The square dungeon of Compose-and-Dragons
+      DUNGEON_DESCRIPTION: A sprawling underground maze filled with monsters, traps, and treasure.
+      DUNGEON_WIDTH: 4
+      DUNGEON_HEIGHT: 4
+      DUNGEON_ENTRANCE_X: 0
+      DUNGEON_ENTRANCE_Y: 0
+      DUNGEON_EXIT_X: 3
+      DUNGEON_EXIT_Y: 3
+
+      # ---------------------------------------------------------
+      # Dungeon agent settings
+      # ---------------------------------------------------------
+      # ✋ This agent generates rooms and monsters using a language model
+      DUNGEON_MODEL_TEMPERATURE: 0.7
+
+      DUNGEON_AGENT_NAME: dungeon-agent
+
+      # ---------------------------------------------------------
+      # Instruction for the room generation
+      # ---------------------------------------------------------
+      DUNGEON_AGENT_ROOM_SYSTEM_INSTRUCTION: |
+        # IDENTITY and PURPOSE
+        You are an expert room generator for games like D&D 5th edition. 
+        You have freedom to be creative to get the best possible output.
+
+        # GENERATION INSTRUCTIONS
+        When generating rooms, you must follow these rules:
+        Your job is to generate a name and description of a room in a fantasy setting.
+        The output is the name and description of the room.
+        Speak only in English, avoid Chinese ideogram.
+        Ensure the name and the description are fantasy-themed.
+
+      # ---------------------------------------------------------
+      # Instruction for the monster generation
+      # ---------------------------------------------------------
+      DUNGEON_AGENT_MONSTER_SYSTEM_INSTRUCTION: |
+        # IDENTITY and PURPOSE
+        You are an expert monster generator for games like D&D 5th edition. 
+        You have freedom to be creative to get the best possible output.
+
+        # GENERATION INSTRUCTIONS
+        When generating monsters, you must follow these rules:
+        Your job is to generate a name and description of a monster in a fantasy setting.
+        The output is the name and description of the monster.
+        Speak only in English, avoid Chinese ideogram.
+        Ensure the name and the description are fantasy-themed.
+
+
+      # if the dungeon is too empty, increase these probabilities
+      # if the dungeon is small, increase these probabilities
+      #ITEM_PROBABILITY: 0.20
+      MAGIC_POTION_PROBABILITY: 0.5
+      GOLD_COINS_PROBABILITY: 0.5
+      #MONSTER_PROBABILITY: 0.25
+      MONSTER_PROBABILITY: 0.5
+
+      # ---------------------------------------------------------
+      # Player settings
+      # ---------------------------------------------------------
+      PLAYER_INITIAL_HEALTH: 100
+      PLAYER_INITIAL_STRENGTH: 10
+      PLAYER_INITIAL_EXPERIENCE: 0
+      PLAYER_INITIAL_GOLD_COINS: 0
+
+    models:
+      dungeon-model:
+        endpoint_var: MODEL_RUNNER_BASE_URL
+        model_var: DUNGEON_MODEL
+      
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6060/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ---------------------------------------------------------
+  # Usage:
+  # docker attach $(docker compose ps -q dungeon-master)
+  # ---------------------------------------------------------
+  dungeon-master:
+    build:
+      context: .
+      dockerfile: dungeon-master/Dockerfile
+
+    tty: true          # Enable TTY
+    stdin_open: true   # Keep stdin open
+    
+    environment:
+      <<: *common-variables
+
+      SORCERER_ENDPOINT: http://sorcerer-agent:9100/chat-stream-flow
+      MERCHANT_ENDPOINT: http://merchant-agent:9100/chat-stream-flow
+      GUARD_ENDPOINT: http://guard-agent:9100/chat-stream-flow
+      HEALER_ENDPOINT: http://healer-agent:9100/chat-stream-flow
+      BOSS_ENDPOINT: http://boss-agent:9100/chat-stream-flow
+
+      LOG_TOOL_MESSAGES: "false"
+
+      MCP_SERVER_BASE_URL: http://mcp-gateway:9011/mcp
+      TERM: xterm-256color
+      # ---------------------------------------------------------
+      # Dungeon Master settings
+      # ---------------------------------------------------------
+      #DUNGEON_MASTER_MODEL: hf.co/menlo/jan-nano-gguf:q4_k_m
+      DUNGEON_MASTER_NAME: Zephyr
+      DUNGEON_MASTER_SYSTEM_INSTRUCTIONS: |
+        You are a friendly and helpful Dungeon Master for a Dungeons & Dragons game.
+        You will guide the player through a fantasy adventure, describing scenes, challenges, and characters.
+        You will use tools to manage the game state, such as creating a player, starting a quest, and rolling dice.
+        You will use a conversational and immersive style, making the player feel like they are part of the adventure.
+        You will avoid breaking character and stay in the role of the Dungeon Master at all times.
+        You will end each response with a question or prompt to encourage the player to take action.
+        Use all the provided data to make the adventure, the rooms description... engaging and coherent.
+        The response format is done in markdown, well structured with titles, subtitles, bullet points...
+
+      #DUNGEON_MASTER_MODEL_TEMPERATURE: 0.7 # Theoretically 0.0 
+      DUNGEON_MASTER_MODEL_TEMPERATURE: 0.0 
+      DUNGEON_MASTER_MODEL_TOP_P: 0.9
+
+      # ---------------------------------------------------------
+      # Similarity search settings
+      # ---------------------------------------------------------
+      SIMILARITY_LIMIT: 0.5
+      SIMILARITY_MAX_RESULTS: 2
+      VECTOR_STORES_PATH: ./data
+
+    volumes:
+      - ./dungeon-master/data:/app/data
+
+    models:
+      dungeon-master-intent-model:
+        endpoint_var: MODEL_RUNNER_BASE_URL
+        model_var: DUNGEON_MASTER_INTENT_MODEL
+
+      dungeon-master-tools-model:
+        endpoint_var: MODEL_RUNNER_BASE_URL
+        model_var: DUNGEON_MASTER_TOOLS_MODEL
+
+      dungeon-master-chat-model:
+        endpoint_var: MODEL_RUNNER_BASE_URL
+        model_var: DUNGEON_MASTER_CHAT_MODEL
+
+    depends_on:
+      mcp-gateway:
+        condition: service_started
+
+models:
+
+  dungeon-model:
+    model: ai/qwen2.5:1.5B-F16   
+    context_size: 8192
+
+  # you need to use a bigger model than 1.5b for the intent model
+  dungeon-master-intent-model:
+    model: ai/qwen2.5:latest
+    context_size: 8192
+ 
+  dungeon-master-tools-model:
+    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    context_size: 8192
+
+  dungeon-master-chat-model:
+    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    context_size: 8192
+
+
+  sorcerer-model:
+    model: ai/qwen2.5:1.5B-F16
+    #model: hf.co/menlo/lucy-gguf:q8_0
+    context_size: 8192
+
+    # runtime_flags:
+    #   - "--temp 1.0"
+    #   - "--top-p 0.9"
+  merchant-model:
+    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    context_size: 8192
+
+  guard-model:
+    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    context_size: 8192
+
+  healer-model:
+    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    context_size: 8192
+
+  boss-model:
+    #model: hf.co/menlo/lucy-gguf:q4_k_m
+    model: "ai/qwen2.5:1.5B-F16"
+    context_size: 8192
+    # runtime_flags:
+    #   - "--temp 0.0"
+    #   - "--top-p 0.9"
+
+  embedding-model:
+    model: ai/granite-embedding-multilingual:latest
+    #model: ai/mxbai-embed-large:latest
+
+
+configs:
+  catalog.yaml:
+    content: |
+      registry:
+
+        mcp-dungeon:
+          remote:
+            url: "http://mcp-dungeon:6060/mcp"
+            transport_type: http
+
+  

@@ -1,0 +1,4 @@
+Le problème vient du fait que le buffer de sortie n'est pas vidé (flushed) avant de lire l'entrée utilisateur. Dans un environnement Docker avec attach, la sortie est souvent bufférisée. Vous devez forcer le flush du buffer stdout avant fmt.Scanln. Voici la correction à apporter au fichier 21-mcp-tools-agent/toolbox/pico/tools-agent.go:153-154:
+
+Remplacement de fmt.Printf par fmt.Fprintf(os.Stdout, ...) suivi de os.Stdout.Sync() pour forcer le vidage du buffer avant la lecture
+Le problème venait du fait que dans Docker, la sortie standard est bufférisée. Le prompt n'était pas affiché immédiatement car il restait dans le buffer jusqu'à ce qu'un \n soit écrit ou que le buffer soit plein. os.Stdout.Sync() force le vidage du buffer immédiatement.
