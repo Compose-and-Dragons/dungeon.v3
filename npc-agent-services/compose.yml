@@ -172,19 +172,24 @@ models:
     #   - "--temp 1.0"
     #   - "--top-p 0.9"
   merchant-model:
-    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    #model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    model: ai/qwen2.5:1.5B-F16
   
   guard-model:
-    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    #model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    model: ai/qwen2.5:1.5B-F16
 
   healer-model:
-    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    #model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    model: ai/qwen2.5:1.5B-F16
 
   boss-model:
-    model: hf.co/menlo/lucy-gguf:q4_k_m
+    #model: hf.co/menlo/lucy-gguf:q4_k_m
+    model: ai/qwen2.5:1.5B-F16
 
   gargantua-model:
-    model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    #model: hf.co/menlo/jan-nano-gguf:q4_k_m
+    model: ai/qwen2.5:1.5B-F16
   
   embedding-model:
     model: ai/mxbai-embed-large:latest
